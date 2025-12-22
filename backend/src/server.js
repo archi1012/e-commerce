@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
+const session = require('express-session');
 const dotenv = require('dotenv');
+const passport = require('passport');
 const connectDB = require('./config/db');
 
 // Load environment variables
@@ -9,21 +11,36 @@ dotenv.config();
 // Connect to database
 connectDB();
 
+// Load passport configuration
+require('./config/passport');
+
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
 app.get('/', (req, res) => {
   res.json({ message: 'E-commerce API Server', version: '1.0.0' });
 });
 
-app.use('/api/auth', require('./routes/auth.routes'));
-app.use('/api/products', require('./routes/product.routes'));
-app.use('/api/cart', require('./routes/cart.routes'));
-app.use('/api/orders', require('./routes/order.routes'));
+const authRoutes = require('./routes/auth.routes');
+const productRoutes = require('./routes/product.routes');
+const cartRoutes = require('./routes/cart.routes');
+const orderRoutes = require('./routes/order.routes');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

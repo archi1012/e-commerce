@@ -2,17 +2,29 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.success('Login successful!');
-    setTimeout(() => navigate('/'), 1000);
+    setLoading(true);
+    
+    try {
+      await login({ email, password });
+      toast.success('Login successful!');
+      navigate('/');
+    } catch (error) {
+      toast.error(error.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,9 +97,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-[#1F3C88] to-[#5B73C5] text-white py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:scale-105"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[#1F3C88] to-[#5B73C5] text-white py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:scale-105 disabled:opacity-50"
             >
-              Sign In
+              {loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
 
@@ -101,7 +114,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button className="w-full mt-4 px-4 py-3 border-2 border-gray-200 rounded-lg hover:border-[#1F3C88] transition flex items-center justify-center gap-2">
+            <button 
+              className="w-full mt-4 px-4 py-3 border-2 border-gray-200 rounded-lg hover:border-[#1F3C88] transition flex items-center justify-center gap-2"
+              onClick={() => window.location.href = 'http://localhost:5000/api/auth/google'}
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"

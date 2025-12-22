@@ -1,11 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Heart, Menu } from 'lucide-react';
+import { Search, ShoppingCart, User, Heart, Menu, LogOut } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { categories } from '../data/products';
 import { useState } from 'react';
 
 export default function Header() {
   const { getTotalItems } = useCart();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategoriesMenu, setShowCategoriesMenu] = useState(false);
@@ -13,9 +15,13 @@ export default function Header() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Navigate to search results
       console.log('Searching for:', searchQuery);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
   return (
@@ -60,13 +66,26 @@ export default function Header() {
 
           {/* Action buttons */}
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/login')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-[#F5F7FA] transition"
-            >
-              <User className="w-5 h-5" />
-              <span className="hidden md:block">Login</span>
-            </button>
+            {user ? (
+              <>
+                <span className="text-sm text-gray-600">Hi, {user.name}</span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-[#F5F7FA] transition"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="hidden md:block">Logout</span>
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => navigate('/login')}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-[#F5F7FA] transition"
+              >
+                <User className="w-5 h-5" />
+                <span className="hidden md:block">Login</span>
+              </button>
+            )}
 
             <Link
               to="/profile"

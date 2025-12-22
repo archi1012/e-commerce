@@ -59,3 +59,8 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
   res.json(req.user);
 };
+
+exports.googleAuth = (req, res) => {
+  const token = generateToken(req.user._id);
+  res.redirect(`http://localhost:5173/auth/success?token=${token}`);
+};

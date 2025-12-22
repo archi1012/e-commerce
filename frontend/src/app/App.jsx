@@ -8,24 +8,29 @@ import CheckoutPage from './pages/CheckoutPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AuthSuccessPage from './pages/AuthSuccessPage';
+import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
 export default function App() {
   return (
     <BrowserRouter>
-      <CartProvider>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/category/:categoryName" element={<CategoryPage />} />
-          <Route path="/product/:productId" element={<ProductDetailPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Routes>
-        <Toaster position="top-right" />
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/category/:categoryName" element={<CategoryPage />} />
+            <Route path="/product/:productId" element={<ProductDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/auth/success" element={<AuthSuccessPage />} />
+          </Routes>
+          <Toaster position="top-right" />
+        </CartProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
