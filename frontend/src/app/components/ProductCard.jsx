@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 
 export default function ProductCard({ product }) {
   const { addToCart, addToWishlist, wishlist } = useCart();
-  const isInWishlist = wishlist.some(item => item.id === product.id);
+  const productId = product._id || product.id;
+  const isInWishlist = wishlist.some(item => (item._id || item.id) === productId);
 
   const handleAddToCart = () => {
     addToCart(product);
@@ -19,7 +20,7 @@ export default function ProductCard({ product }) {
 
   return (
     <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-      <Link to={`/product/${product.id}`} className="block relative">
+      <Link to={`/product/${productId}`} className="block relative">
         <div className="aspect-square overflow-hidden bg-gray-100">
           <img
             src={product.image}
@@ -48,7 +49,7 @@ export default function ProductCard({ product }) {
       </Link>
 
       <div className="p-4">
-        <Link to={`/product/${product.id}`}>
+        <Link to={`/product/${productId}`}>
           <h3 className="font-medium mb-1 line-clamp-2 hover:text-[#1F3C88] transition">
             {product.name}
           </h3>
@@ -59,11 +60,17 @@ export default function ProductCard({ product }) {
         )}
 
         <div className="flex items-center gap-2 mb-2">
-          <div className="flex items-center gap-1 bg-[#10B981] text-white px-2 py-0.5 rounded text-sm">
-            <span>{product.rating}</span>
-            <Star className="w-3 h-3" fill="currentColor" />
-          </div>
-          <span className="text-sm text-gray-500">({product.reviews})</span>
+          {product.rating > 0 ? (
+            <>
+              <div className="flex items-center gap-1 bg-[#10B981] text-white px-2 py-0.5 rounded text-sm">
+                <span>{product.rating}</span>
+                <Star className="w-3 h-3" fill="currentColor" />
+              </div>
+              <span className="text-sm text-gray-500">({product.reviews})</span>
+            </>
+          ) : (
+            <span className="text-sm text-gray-500">No reviews yet</span>
+          )}
         </div>
 
         <div className="flex items-baseline gap-2 mb-3">

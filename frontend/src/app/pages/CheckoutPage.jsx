@@ -57,7 +57,8 @@ export default function CheckoutPage() {
       });
       rzp.open();
     } catch (error) {
-      console.error('Payment error:', error);
+      const logger = (await import('../utils/logger')).default;
+      logger.error('Payment error:', error);
       toast.error(error.message || 'Payment failed');
       setLoading(false);
     }

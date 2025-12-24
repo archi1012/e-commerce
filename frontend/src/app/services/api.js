@@ -18,14 +18,24 @@ const apiRequest = async (endpoint, options = {}) => {
     config.body = JSON.stringify(config.body);
   }
 
-  const response = await fetch(url, config);
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
+  try {
+    const response = await fetch(url, config);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Response is not JSON');
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('API Request Error:', error);
+    throw error;
   }
-
-  return data;
 };
 
 export const authAPI = {
@@ -41,6 +51,9 @@ export const productsAPI = {
   },
   getProduct: (id) => apiRequest(`/products/${id}`),
   getCategories: () => apiRequest('/products/categories'),
+  addProduct: (productData) => apiRequest('/products', { method: 'POST', body: productData }),
+  updateProduct: (id, productData) => apiRequest(`/products/${id}`, { method: 'PUT', body: productData }),
+  deleteProduct: (id) => apiRequest(`/products/${id}`, { method: 'DELETE' }),
 };
 
 export const cartAPI = {
@@ -54,6 +67,14 @@ export const ordersAPI = {
   createOrder: (orderData) => apiRequest('/orders', { method: 'POST', body: orderData }),
   getOrders: () => apiRequest('/orders'),
   getOrder: (id) => apiRequest(`/orders/${id}`),
+};
+
+export const reviewsAPI = {
+  addReview: (reviewData) => apiRequest('/reviews', { method: 'POST', body: reviewData }),
+  getProductReviews: (productId) => {
+    if (!productId) throw new Error('getProductReviews requires a productId');
+    return apiRequest(`/reviews/product/${productId}`);
+  },
 };
 
 export const paymentAPI = {

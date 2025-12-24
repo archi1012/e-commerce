@@ -1,50 +1,17 @@
-const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const User = require("../models/User");
+const express = require('express');
+const { body } = require('express-validator');
+const { register, login, getProfile } = require('../controllers/auth.controller');
+const auth = require('../middleware/auth.middleware');
 
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: "/api/auth/google/callback",
-      },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          let user = await User.findOne({
-            email: profile.emails[0].value,
-          });
+const router = express.Router();
 
-          if (!user) {
-            user = await User.create({
-              name: profile.displayName,
-              email: profile.emails[0].value,
-              password: "google-oauth",
-              googleId: profile.id,
-            });
-          }
+router.post('/register', [
+  body('name').notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], register);
 
-          return done(null, user);
-        } catch (err) {
-          return done(err, null);
-        }
-      }
-    )
-  );
-}
+router.post('/login', login);
+router.get('/profile', auth, getProfile);
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (err) {
-    done(err, null);
-  }
-});
-
-module.exports = passport;
+module.exports = router;

@@ -1,7 +1,9 @@
 import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { products } from '../data/products';
+import Reviews from '../components/Reviews';
+import { productsAPI } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { toast } from 'sonner';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
@@ -9,7 +11,36 @@ import { ShoppingCart, Heart, Star } from 'lucide-react';
 export default function ProductDetailPage() {
   const { productId } = useParams();
   const { addToCart, addToWishlist } = useCart();
-  const product = products.find(p => p.id === productId);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    fetchProduct();
+  }, [productId]);
+  
+  const fetchProduct = async () => {
+    try {
+      const data = await productsAPI.getProduct(productId);
+      setProduct(data);
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      setProduct(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F5F7FA]">
+        <Header />
+        <div className="container mx-auto px-4 py-12 text-center">
+          <div className="text-lg">Loading product...</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -53,11 +84,17 @@ export default function ProductDetailPage() {
             )}
             
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex items-center gap-1 bg-[#10B981] text-white px-3 py-1 rounded">
-                <span>{product.rating}</span>
-                <Star className="w-4 h-4" fill="currentColor" />
-              </div>
-              <span className="text-gray-600">({product.reviews} reviews)</span>
+              {product.rating > 0 ? (
+                <>
+                  <div className="flex items-center gap-1 bg-[#10B981] text-white px-3 py-1 rounded">
+                    <span>{product.rating}</span>
+                    <Star className="w-4 h-4" fill="currentColor" />
+                  </div>
+                  <span className="text-gray-600">({product.reviewCount || 0} reviews)</span>
+                </>
+              ) : (
+                <span className="text-gray-600">No reviews yet</span>
+              )}
             </div>
 
             <div className="flex items-baseline gap-3 mb-6">
@@ -90,6 +127,15 @@ export default function ProductDetailPage() {
               </button>
             </div>
           </div>
+        </div>
+        
+        {/* Reviews Section */}
+        <div className="mt-12">
+          <Reviews 
+            productId={product._id} 
+            currentRating={product.rating || 0} 
+            reviewCount={product.reviewCount || 0} 
+          />
         </div>
       </div>
       <Footer />

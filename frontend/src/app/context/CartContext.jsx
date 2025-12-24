@@ -20,7 +20,8 @@ export function CartProvider({ children }) {
       const data = await cartAPI.getCart();
       setCart(data.items || []);
     } catch (error) {
-      console.error('Failed to load cart:', error);
+      const logger = (await import('../utils/logger')).default;
+      logger.error('Failed to load cart:', error);
     }
   };
 
@@ -45,7 +46,8 @@ export function CartProvider({ children }) {
       const data = await cartAPI.addToCart(product.id || product._id);
       setCart(data.items || []);
     } catch (error) {
-      console.error('Failed to add to cart:', error);
+      const logger = (await import('../utils/logger')).default;
+      logger.error('Failed to add to cart:', error);
       // Fallback to local cart on error
       setCart(prevCart => {
         const existingItem = prevCart.find(item => (item.product?.id || item.id) === product.id);
@@ -71,7 +73,8 @@ export function CartProvider({ children }) {
       const data = await cartAPI.removeFromCart(productId);
       setCart(data.items || []);
     } catch (error) {
-      console.error('Failed to remove from cart:', error);
+      const logger = (await import('../utils/logger')).default;
+      logger.error('Failed to remove from cart:', error);
     }
   };
 
@@ -89,7 +92,8 @@ export function CartProvider({ children }) {
       const data = await cartAPI.updateCartItem(productId, quantity);
       setCart(data.items || []);
     } catch (error) {
-      console.error('Failed to update quantity:', error);
+      const logger = (await import('../utils/logger')).default;
+      logger.error('Failed to update quantity:', error);
     }
   };
 

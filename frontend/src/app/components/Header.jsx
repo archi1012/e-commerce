@@ -1,21 +1,34 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Heart, Menu, LogOut } from 'lucide-react';
+import { Search, ShoppingCart, User, Heart, Menu, LogOut, Store } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useSeller } from '../context/SellerContext';
 import { categories } from '../data/products';
 import { useState } from 'react';
+import SellerLoginModal from './SellerLoginModal';
+import logger from '../utils/logger';
 
 export default function Header() {
   const { getTotalItems } = useCart();
   const { user, logout } = useAuth();
+  const { seller, switchToSellerMode } = useSeller();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategoriesMenu, setShowCategoriesMenu] = useState(false);
+  const [showSellerLogin, setShowSellerLogin] = useState(false);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      console.log('Searching for:', searchQuery);
+      logger.log('Searching for:', searchQuery);
+    }
+  };
+
+  const handleSellerAccess = () => {
+    if (seller) {
+      switchToSellerMode();
+    } else {
+      setShowSellerLogin(true);
     }
   };
 
@@ -87,6 +100,17 @@ export default function Header() {
               </button>
             )}
 
+            <button
+              onClick={handleSellerAccess}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-[#F5F7FA] transition"
+            >
+              <Store className="w-5 h-5" />
+              <div className="hidden md:block text-left">
+                <div className="text-sm font-medium">Become a Seller</div>
+                <div className="text-xs text-gray-500">Manage products & orders</div>
+              </div>
+            </button>
+
             <Link
               to="/profile"
               className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-[#F5F7FA] transition"
@@ -150,6 +174,11 @@ export default function Header() {
           ))}
         </div>
       </div>
+      
+      <SellerLoginModal 
+        isOpen={showSellerLogin} 
+        onClose={() => setShowSellerLogin(false)} 
+      />
     </header>
   );
 }

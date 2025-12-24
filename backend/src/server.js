@@ -32,15 +32,17 @@ app.get('/', (req, res) => {
   res.json({ message: 'E-commerce API Server', version: '1.0.0' });
 });
 
-const authRoutes = require('./routes/auth.routes');
+const authRoutes = require('./routes/auth-simple.routes');
 const productRoutes = require('./routes/product.routes');
 const cartRoutes = require('./routes/cart.routes');
 const orderRoutes = require('./routes/order.routes');
+const reviewRoutes = require('./routes/review.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

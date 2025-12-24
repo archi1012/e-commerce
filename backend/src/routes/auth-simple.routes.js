@@ -1,7 +1,8 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, getProfile } = require('../controllers/auth.controller');
+const { register, login, getProfile, googleAuth } = require('../controllers/auth.controller');
 const auth = require('../middleware/auth.middleware');
+const passport = require('passport');
 
 const router = express.Router();
 
@@ -14,8 +15,8 @@ router.post('/register', [
 router.post('/login', login);
 router.get('/profile', auth, getProfile);
 
-router.get('/google', (req, res) => {
-  res.status(501).json({ message: 'Google OAuth temporarily disabled' });
-});
+// Google OAuth routes
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), googleAuth);
 
 module.exports = router;
