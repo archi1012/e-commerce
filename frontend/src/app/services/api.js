@@ -49,7 +49,12 @@ export const productsAPI = {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/products${queryString ? `?${queryString}` : ''}`);
   },
-  getProduct: (id) => apiRequest(`/products/${id}`),
+  getProduct: (id) => {
+    if (!id || id === 'undefined') {
+      throw new Error('Product ID is required');
+    }
+    return apiRequest(`/products/${id}`);
+  },
   getCategories: () => apiRequest('/products/categories'),
   addProduct: (productData) => apiRequest('/products', { method: 'POST', body: productData }),
   updateProduct: (id, productData) => apiRequest(`/products/${id}`, { method: 'PUT', body: productData }),

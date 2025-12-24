@@ -5,8 +5,7 @@ import { toast } from 'sonner';
 
 export default function ProductCard({ product }) {
   const { addToCart, addToWishlist, wishlist } = useCart();
-  const productId = product._id || product.id;
-  const isInWishlist = wishlist.some(item => (item._id || item.id) === productId);
+  const isInWishlist = wishlist.some(item => item.id === product.id);
 
   const handleAddToCart = () => {
     addToCart(product);
@@ -20,7 +19,7 @@ export default function ProductCard({ product }) {
 
   return (
     <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-      <Link to={`/product/${productId}`} className="block relative">
+        <Link to={`/product/${product._id || product.id}`} className="block relative">
         <div className="aspect-square overflow-hidden bg-gray-100">
           <img
             src={product.image}
@@ -49,7 +48,7 @@ export default function ProductCard({ product }) {
       </Link>
 
       <div className="p-4">
-        <Link to={`/product/${productId}`}>
+        <Link to={`/product/${product._id || product.id}`}>
           <h3 className="font-medium mb-1 line-clamp-2 hover:text-[#1F3C88] transition">
             {product.name}
           </h3>
@@ -60,13 +59,13 @@ export default function ProductCard({ product }) {
         )}
 
         <div className="flex items-center gap-2 mb-2">
-          {product.rating > 0 ? (
+          {(product.rating && product.rating > 0) ? (
             <>
               <div className="flex items-center gap-1 bg-[#10B981] text-white px-2 py-0.5 rounded text-sm">
-                <span>{product.rating}</span>
+                <span>{Number(product.rating).toFixed(1)}</span>
                 <Star className="w-3 h-3" fill="currentColor" />
               </div>
-              <span className="text-sm text-gray-500">({product.reviews})</span>
+              <span className="text-sm text-gray-500">({Number(product.reviews || 0)})</span>
             </>
           ) : (
             <span className="text-sm text-gray-500">No reviews yet</span>
@@ -74,13 +73,13 @@ export default function ProductCard({ product }) {
         </div>
 
         <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-xl font-semibold">₹{product.price.toLocaleString('en-IN')}</span>
+          <span className="text-xl font-semibold">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
           {product.originalPrice && (
             <>
               <span className="text-sm text-gray-400 line-through">
-                ₹{product.originalPrice.toLocaleString('en-IN')}
+                ₹{Number(product.originalPrice).toLocaleString('en-IN')}
               </span>
-              <span className="text-sm text-[#10B981]">{product.discount}% off</span>
+              <span className="text-sm text-[#10B981]">{Number(product.discount || 0)}% off</span>
             </>
           )}
         </div>

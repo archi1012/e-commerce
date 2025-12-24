@@ -19,6 +19,12 @@ export default function ProductDetailPage() {
   }, [productId]);
   
   const fetchProduct = async () => {
+    if (!productId) {
+      setProduct(null);
+      setLoading(false);
+      return;
+    }
+    
     try {
       const data = await productsAPI.getProduct(productId);
       setProduct(data);
@@ -84,13 +90,13 @@ export default function ProductDetailPage() {
             )}
             
             <div className="flex items-center gap-2 mb-4">
-              {product.rating > 0 ? (
+              {(product.rating && product.rating > 0) ? (
                 <>
                   <div className="flex items-center gap-1 bg-[#10B981] text-white px-3 py-1 rounded">
-                    <span>{product.rating}</span>
+                    <span>{Number(product.rating).toFixed(1)}</span>
                     <Star className="w-4 h-4" fill="currentColor" />
                   </div>
-                  <span className="text-gray-600">({product.reviewCount || 0} reviews)</span>
+                  <span className="text-gray-600">({Number(product.reviews || 0)} reviews)</span>
                 </>
               ) : (
                 <span className="text-gray-600">No reviews yet</span>
@@ -98,13 +104,13 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="flex items-baseline gap-3 mb-6">
-              <span className="text-3xl font-bold">₹{product.price.toLocaleString('en-IN')}</span>
+              <span className="text-3xl font-bold">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
               {product.originalPrice && (
                 <>
                   <span className="text-xl text-gray-400 line-through">
-                    ₹{product.originalPrice.toLocaleString('en-IN')}
+                    ₹{Number(product.originalPrice).toLocaleString('en-IN')}
                   </span>
-                  <span className="text-lg text-[#10B981]">{product.discount}% off</span>
+                  <span className="text-lg text-[#10B981]">{Number(product.discount || 0)}% off</span>
                 </>
               )}
             </div>
@@ -132,9 +138,9 @@ export default function ProductDetailPage() {
         {/* Reviews Section */}
         <div className="mt-12">
           <Reviews 
-            productId={product._id} 
+            productId={product._id || product.id} 
             currentRating={product.rating || 0} 
-            reviewCount={product.reviewCount || 0} 
+            reviewCount={product.reviews || 0} 
           />
         </div>
       </div>

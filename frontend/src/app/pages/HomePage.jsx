@@ -37,7 +37,6 @@ const banners = [
 export default function HomePage() {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [products, setProducts] = useState([]);
-  const [categoriesWithCounts, setCategoriesWithCounts] = useState(categories);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,25 +46,8 @@ export default function HomePage() {
   const fetchProducts = async () => {
     try {
       const data = await productsAPI.getProducts();
-      const productsArray = Array.isArray(data) ? data : [];
+      const productsArray = Array.isArray(data) ? data : data.products || [];
       setProducts(productsArray);
-      
-      // Calculate real category counts
-      const updatedCategories = categories.map(category => {
-        const count = productsArray.filter(product => {
-          const productCategory = product.category?.toLowerCase();
-          const categoryName = category.name.toLowerCase();
-          const categoryId = category.id.toLowerCase();
-          
-          return productCategory === categoryName || 
-                 productCategory === categoryId ||
-                 (categoryName === 'home & furniture' && productCategory === 'home') ||
-                 (categoryName === 'fashion' && productCategory === 'clothing');
-        }).length;
-        return { ...category, count };
-      });
-      
-      setCategoriesWithCounts(updatedCategories);
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
@@ -155,7 +137,7 @@ export default function HomePage() {
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-6">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categoriesWithCounts.map((category) => (
+            {categories.map((category) => (
               <Link
                 key={category.id}
                 to={`/category/${category.id}`}
@@ -194,7 +176,7 @@ export default function HomePage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {products.slice(0, 4).map((product) => (
-                <ProductCard key={product._id} product={product} />
+                <ProductCard key={product._id || product.id} product={product} />
               ))}
             </div>
           )}
@@ -216,15 +198,15 @@ export default function HomePage() {
           </div>
           {loading ? (
             <div className="text-center py-8">Loading products...</div>
-          ) : products.length > 4 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.slice(4, 8).map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
+          ) : products.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No products available. Add products through the seller dashboard.
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              Add more products to see trending items.
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products.slice(4, 8).map((product) => (
+                <ProductCard key={product._id || product.id} product={product} />
+              ))}
             </div>
           )}
         </section>

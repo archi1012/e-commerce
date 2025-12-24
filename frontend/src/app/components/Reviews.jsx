@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { reviewsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-export default function Reviews({ productId, currentRating, reviewCount }) {
+export default function Reviews({ productId, currentRating = 0, reviewCount = 0 }) {
   const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [showAddReview, setShowAddReview] = useState(false);
@@ -18,10 +18,7 @@ export default function Reviews({ productId, currentRating, reviewCount }) {
   }, [productId]);
 
   const fetchReviews = async () => {
-    if (!productId) {
-      setReviews([]);
-      return;
-    }
+    if (!productId) return;
     
     try {
       const data = await reviewsAPI.getProductReviews(productId);
@@ -59,11 +56,7 @@ export default function Reviews({ productId, currentRating, reviewCount }) {
       setShowAddReview(false);
       fetchReviews();
     } catch (error) {
-      if (error.message.includes('401')) {
-        toast.error('Please login to add a review');
-      } else {
-        toast.error(error.message || 'Failed to add review');
-      }
+      toast.error(error.message || 'Failed to add review');
     } finally {
       setLoading(false);
     }
@@ -83,12 +76,12 @@ export default function Reviews({ productId, currentRating, reviewCount }) {
       {/* Rating Summary */}
       <div className="bg-white rounded-xl p-6">
         <div className="flex items-center gap-4 mb-4">
-          <div className="text-3xl font-bold">{currentRating.toFixed(1)}</div>
+          <div className="text-3xl font-bold">{Number(currentRating || 0).toFixed(1)}</div>
           <div>
             <div className="flex items-center gap-1">
-              {renderStars(Math.round(currentRating))}
+              {renderStars(Math.round(Number(currentRating || 0)))}
             </div>
-            <div className="text-sm text-gray-600">{reviewCount} reviews</div>
+            <div className="text-sm text-gray-600">{Number(reviewCount || 0)} reviews</div>
           </div>
         </div>
 
@@ -172,27 +165,37 @@ export default function Reviews({ productId, currentRating, reviewCount }) {
             No reviews yet. Be the first to review this product!
           </div>
         ) : (
-          reviews.map((review) => (
-            <div key={review._id} className="bg-white rounded-xl p-6">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium">{review.userName}</span>
-                    <div className="flex items-center gap-1">
-                      {renderStars(review.rating)}
+          <div className="space-y-4">
+            {reviews.map((review, index) => {
+              const reviewId = review._id || `review-${index}`;
+              const userName = review.userName || 'Anonymous';
+              const rating = review.rating || 0;
+              const comment = review.comment || 'No comment';
+              const createdAt = review.createdAt || new Date().toISOString();
+              
+              return (
+                <div key={reviewId} className="bg-white rounded-xl p-6">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium">{userName}</span>
+                        <div className="flex items-center gap-1">
+                          {renderStars(rating)}
+                        </div>
+                      </div>
+                      <div className="text-sm text-gray-600 mb-2">
+                        {new Date(createdAt).toLocaleDateString()}
+                      </div>
+                      <p className="text-gray-700">{comment}</p>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600 mb-2">
-                    {new Date(review.createdAt).toLocaleDateString()}
-                  </div>
-                  <p className="text-gray-700">{review.comment}</p>
                 </div>
-              </div>
-            </div>
-          ))
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

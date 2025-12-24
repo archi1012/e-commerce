@@ -17,7 +17,7 @@ export default function CategoryPage() {
   const fetchCategoryProducts = async () => {
     try {
       const data = await productsAPI.getProducts();
-      const allProducts = Array.isArray(data) ? data : [];
+      const allProducts = Array.isArray(data) ? data : data.products || [];
       
       // Filter products by category
       const categoryProducts = allProducts.filter(product => {
@@ -59,12 +59,12 @@ export default function CategoryPage() {
           <div className="text-center py-8">Loading products...</div>
         ) : products.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            No products found in {categoryName} category.
+            No products found in {categoryName} category. Add products through the seller dashboard.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard key={product._id} product={product} />
+              <ProductCard key={product._id || product.id} product={product} />
             ))}
           </div>
         )}
