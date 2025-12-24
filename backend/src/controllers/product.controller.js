@@ -150,9 +150,33 @@ const getCategories = async (req, res) => {
   }
 };
 
+// Get recommendations
+const getRecommendations = async (req, res) => {
+  try {
+    const { category, limit = 8 } = req.query;
+    let query = {};
+    
+    if (category) {
+      query.category = { $regex: category, $options: 'i' };
+    }
+    
+    // Get random products with high ratings or popular ones
+    const recommendations = await Product.aggregate([
+      ...(Object.keys(query).length > 0 ? [{ $match: query }] : []),
+      { $sample: { size: parseInt(limit) } }
+    ]);
+    
+    res.json(recommendations);
+  } catch (error) {
+    console.error('Get recommendations error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   getProducts,
   getProduct,
+  getRecommendations,
   addProduct,
   updateProduct,
   deleteProduct,

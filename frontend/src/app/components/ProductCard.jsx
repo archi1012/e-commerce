@@ -24,7 +24,7 @@ export default function ProductCard({ product }) {
   return (
     <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
         <Link to={`/product/${product._id || product.id}`} className="block relative">
-        <div className="aspect-square overflow-hidden bg-gray-100">
+        <div className="aspect-[4/3] overflow-hidden bg-gray-100">
           <img
             src={product.image}
             alt={product.name}

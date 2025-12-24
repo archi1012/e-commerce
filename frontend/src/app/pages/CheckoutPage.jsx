@@ -1,13 +1,36 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { paymentAPI } from '../services/api';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function CheckoutPage() {
   const { cart, getTotalPrice, clearCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#F5F7FA]">
+        <Header />
+        <div className="container mx-auto px-4 py-8 text-center">
+          <h1 className="text-2xl font-bold mb-4">Please Login</h1>
+          <p className="mb-4">You need to login to proceed with checkout</p>
+          <button 
+            onClick={() => navigate('/login')}
+            className="bg-[#1F3C88] text-white px-6 py-2 rounded-lg"
+          >
+            Login
+          </button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const handlePayment = async () => {
     if (cart.length === 0) {
@@ -21,7 +44,7 @@ export default function CheckoutPage() {
       const order = await paymentAPI.createPaymentOrder(totalAmount);
       
       const options = {
-        key: 'rzp_live_RK5YLrW4IHsqid',
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_9WaeLLJnOFJCBz',
         amount: order.amount,
         currency: order.currency,
         name: 'WINGER Store',
@@ -37,9 +60,9 @@ export default function CheckoutPage() {
           }
         },
         prefill: {
-          name: 'Customer',
-          email: 'customer@example.com',
-          contact: '9999999999'
+          name: user?.name || 'Customer',
+          email: user?.email || 'customer@example.com',
+          contact: user?.phone || '9999999999'
         },
         theme: { color: '#1F3C88' },
         modal: {

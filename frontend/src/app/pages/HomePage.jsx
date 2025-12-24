@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Zap, TrendingUp } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
+import Recommendations from '../components/Recommendations';
 import { categories } from '../data/products';
 import { productsAPI } from '../services/api';
 
@@ -235,6 +236,12 @@ export default function HomePage() {
             <p className="text-gray-600 text-sm">100% safe & secure</p>
           </div>
         </section>
+        {/* Recommendations */}
+        <Recommendations title="Recommended for You" limit={8} />
+        
+        {/* Category-based Recommendations */}
+        <Recommendations title="Popular in Electronics" category="Electronics" limit={6} />
+        <Recommendations title="Fashion Trends" category="Fashion" limit={6} />
       </div>
 
       <Footer />

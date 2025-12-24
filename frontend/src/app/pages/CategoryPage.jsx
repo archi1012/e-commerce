@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
+import Recommendations from '../components/Recommendations';
 import { productsAPI } from '../services/api';
 
 export default function CategoryPage() {
@@ -68,6 +69,13 @@ export default function CategoryPage() {
             ))}
           </div>
         )}
+        
+        {/* Category-specific Recommendations */}
+        <Recommendations 
+          title={`More in ${categoryName}`} 
+          category={categoryName} 
+          limit={8} 
+        />
       </div>
       <Footer />
     </div>

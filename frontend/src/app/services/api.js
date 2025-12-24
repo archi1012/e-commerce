@@ -55,6 +55,10 @@ export const productsAPI = {
     }
     return apiRequest(`/products/${id}`);
   },
+  getRecommendations: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/products/recommendations${queryString ? `?${queryString}` : ''}`);
+  },
   getCategories: () => apiRequest('/products/categories'),
   addProduct: (productData) => apiRequest('/products', { method: 'POST', body: productData }),
   updateProduct: (id, productData) => apiRequest(`/products/${id}`, { method: 'PUT', body: productData }),
