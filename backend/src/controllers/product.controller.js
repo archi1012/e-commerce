@@ -4,7 +4,32 @@ const Category = require('../models/Category');
 // Get all products
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const { search, category, minPrice, maxPrice } = req.query;
+    let query = {};
+    
+    // Search functionality
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { brand: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Category filter
+    if (category) {
+      query.category = { $regex: category, $options: 'i' };
+    }
+    
+    // Price range filter
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = parseFloat(minPrice);
+      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    }
+    
+    const products = await Product.find(query);
     res.json(products);
   } catch (error) {
     console.error('Get products error:', error);
@@ -15,13 +40,23 @@ const getProducts = async (req, res) => {
 // Get single product
 const getProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { id } = req.params;
+    
+    // Validate ObjectId format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'Invalid product ID format' });
+    }
+    
+    const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
     res.json(product);
   } catch (error) {
     console.error('Get product error:', error);
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid product ID' });
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -77,14 +112,30 @@ const updateProduct = async (req, res) => {
 // Delete product
 const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+    console.log('Attempting to delete product with ID:', id);
     
+    // Validate ObjectId format
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      console.log('Invalid product ID format:', id);
+      return res.status(400).json({ message: 'Invalid product ID format' });
+    }
+    
+    const product = await Product.findById(id);
     if (!product) {
+      console.log('Product not found:', id);
       return res.status(404).json({ message: 'Product not found' });
     }
     
+    await Product.findByIdAndDelete(id);
+    console.log('Product deleted successfully:', id);
+    
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
+    console.error('Delete product error:', error);
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid product ID' });
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

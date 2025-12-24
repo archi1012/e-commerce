@@ -7,9 +7,13 @@ export default function ProductCard({ product }) {
   const { addToCart, addToWishlist, wishlist } = useCart();
   const isInWishlist = wishlist.some(item => item.id === product.id);
 
-  const handleAddToCart = () => {
-    addToCart(product);
-    toast.success('Added to cart!');
+  const handleAddToCart = async () => {
+    try {
+      await addToCart(product);
+      toast.success('Added to cart!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to add to cart');
+    }
   };
 
   const handleAddToWishlist = () => {
@@ -86,10 +90,15 @@ export default function ProductCard({ product }) {
 
         <button
           onClick={handleAddToCart}
-          className="w-full bg-[#1F3C88] text-white py-2.5 rounded-lg hover:bg-[#1F3C88]/90 transition flex items-center justify-center gap-2 group-hover:bg-[#F9C74F] group-hover:text-[#2E2E2E]"
+          disabled={product.stock === 0}
+          className={`w-full py-2.5 rounded-lg transition flex items-center justify-center gap-2 ${
+            product.stock === 0
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-[#1F3C88] text-white hover:bg-[#1F3C88]/90 group-hover:bg-[#F9C74F] group-hover:text-[#2E2E2E]'
+          }`}
         >
           <ShoppingCart className="w-4 h-4" />
-          Add to Cart
+          {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
         </button>
       </div>
     </div>

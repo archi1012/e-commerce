@@ -165,37 +165,27 @@ export default function Reviews({ productId, currentRating = 0, reviewCount = 0 
             No reviews yet. Be the first to review this product!
           </div>
         ) : (
-          <div className="space-y-4">
-            {reviews.map((review, index) => {
-              const reviewId = review._id || `review-${index}`;
-              const userName = review.userName || 'Anonymous';
-              const rating = review.rating || 0;
-              const comment = review.comment || 'No comment';
-              const createdAt = review.createdAt || new Date().toISOString();
-              
-              return (
-                <div key={reviewId} className="bg-white rounded-xl p-6">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-gray-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium">{userName}</span>
-                        <div className="flex items-center gap-1">
-                          {renderStars(rating)}
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-600 mb-2">
-                        {new Date(createdAt).toLocaleDateString()}
-                      </div>
-                      <p className="text-gray-700">{comment}</p>
+          reviews.map((review, index) => (
+            <div key={`review-${index}`} className="bg-white rounded-xl p-6">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-gray-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">{String(review.userName || 'Anonymous')}</span>
+                    <div className="flex items-center gap-1">
+                      {renderStars(Number(review.rating || 0))}
                     </div>
                   </div>
+                  <div className="text-sm text-gray-600 mb-2">
+                    {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : 'Unknown date'}
+                  </div>
+                  <p className="text-gray-700">{String(review.comment || 'No comment')}</p>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>

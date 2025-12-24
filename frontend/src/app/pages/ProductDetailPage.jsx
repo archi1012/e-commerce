@@ -19,7 +19,7 @@ export default function ProductDetailPage() {
   }, [productId]);
   
   const fetchProduct = async () => {
-    if (!productId) {
+    if (!productId || productId === 'undefined') {
       setProduct(null);
       setLoading(false);
       return;
@@ -30,6 +30,9 @@ export default function ProductDetailPage() {
       setProduct(data);
     } catch (error) {
       console.error('Error fetching product:', error);
+      if (error.message.includes('404')) {
+        console.log('Product not found in database');
+      }
       setProduct(null);
     } finally {
       setLoading(false);

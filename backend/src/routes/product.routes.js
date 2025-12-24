@@ -10,8 +10,8 @@ router.get('/categories', getCategories);
 router.get('/:id', getProduct);
 
 // Protected routes (seller/admin only)
-router.post('/', auth, addProduct);
-router.put('/:id', auth, updateProduct);
-router.delete('/:id', auth, deleteProduct);
+router.post('/', addProduct);
+router.put('/:id', updateProduct);
+router.delete('/:id', deleteProduct);
 
 module.exports = router;

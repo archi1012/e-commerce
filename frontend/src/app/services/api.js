@@ -58,7 +58,12 @@ export const productsAPI = {
   getCategories: () => apiRequest('/products/categories'),
   addProduct: (productData) => apiRequest('/products', { method: 'POST', body: productData }),
   updateProduct: (id, productData) => apiRequest(`/products/${id}`, { method: 'PUT', body: productData }),
-  deleteProduct: (id) => apiRequest(`/products/${id}`, { method: 'DELETE' }),
+  deleteProduct: (id) => {
+    if (!id || id === 'undefined') {
+      throw new Error('Product ID is required');
+    }
+    return apiRequest(`/products/${id}`, { method: 'DELETE' });
+  },
 };
 
 export const cartAPI = {

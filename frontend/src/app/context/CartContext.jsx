@@ -13,6 +13,27 @@ export function CartProvider({ children }) {
     if (user) {
       loadCart();
     }
+    
+    // Refresh cart every 30 seconds to sync with database
+    const interval = setInterval(() => {
+      if (user) {
+        loadCart();
+      }
+    }, 30000);
+    
+    // Refresh cart when user returns to tab
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        loadCart();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [user]);
 
   const loadCart = async () => {
@@ -20,80 +41,93 @@ export function CartProvider({ children }) {
       const data = await cartAPI.getCart();
       setCart(data.items || []);
     } catch (error) {
-      const logger = (await import('../utils/logger')).default;
-      logger.error('Failed to load cart:', error);
+      console.error('Failed to load cart:', error);
+      // If cart fails to load, clear it
+      setCart([]);
     }
   };
 
   const addToCart = async (product) => {
+    const productId = product._id || product.id;
+    
     if (!user) {
-      // Add to local state if not logged in
       setCart(prevCart => {
-        const existingItem = prevCart.find(item => (item.product?.id || item.id) === product.id);
+        const existingItem = prevCart.find(item => {
+          const itemId = item.product?._id || item.product?.id || item._id || item.id;
+          return itemId === productId;
+        });
         if (existingItem) {
-          return prevCart.map(item =>
-            (item.product?.id || item.id) === product.id
+          return prevCart.map(item => {
+            const itemId = item.product?._id || item.product?.id || item._id || item.id;
+            return itemId === productId
               ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
+              : item;
+          });
         }
-        return [...prevCart, { ...product, quantity: 1 }];
+        return [...prevCart, { product, quantity: 1 }];
       });
       return;
     }
 
     try {
-      const data = await cartAPI.addToCart(product.id || product._id);
-      setCart(data.items || []);
+      await cartAPI.addToCart(productId);
+      await loadCart();
     } catch (error) {
-      const logger = (await import('../utils/logger')).default;
-      logger.error('Failed to add to cart:', error);
-      // Fallback to local cart on error
-      setCart(prevCart => {
-        const existingItem = prevCart.find(item => (item.product?.id || item.id) === product.id);
-        if (existingItem) {
-          return prevCart.map(item =>
-            (item.product?.id || item.id) === product.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
-        }
-        return [...prevCart, { ...product, quantity: 1 }];
-      });
+      console.error('Failed to add to cart:', error);
+      if (error.message.includes('404') || error.message.includes('not found')) {
+        throw new Error('Product not available');
+      }
+      if (error.message.includes('out of stock') || error.message.includes('available')) {
+        throw new Error(error.message);
+      }
+      throw error;
     }
   };
 
   const removeFromCart = async (productId) => {
     if (!user) {
-      setCart(prevCart => prevCart.filter(item => (item.product?.id || item.id) !== productId));
+      setCart(prevCart => prevCart.filter(item => {
+        const itemId = item.product?._id || item.product?.id || item._id || item.id;
+        return itemId !== productId;
+      }));
       return;
     }
 
     try {
-      const data = await cartAPI.removeFromCart(productId);
-      setCart(data.items || []);
+      await cartAPI.removeFromCart(productId);
+      await loadCart();
     } catch (error) {
-      const logger = (await import('../utils/logger')).default;
-      logger.error('Failed to remove from cart:', error);
+      console.error('Failed to remove from cart:', error);
     }
   };
 
   const updateQuantity = async (productId, quantity) => {
     if (!user) {
       setCart(prevCart =>
-        prevCart.map(item =>
-          (item.product?.id || item.id) === productId ? { ...item, quantity } : item
-        )
+        prevCart.map(item => {
+          const itemId = item.product?._id || item.product?.id || item._id || item.id;
+          return itemId === productId ? { ...item, quantity } : item;
+        })
       );
       return;
     }
 
     try {
-      const data = await cartAPI.updateCartItem(productId, quantity);
-      setCart(data.items || []);
+      await cartAPI.updateCartItem(productId, quantity);
+      await loadCart();
     } catch (error) {
-      const logger = (await import('../utils/logger')).default;
-      logger.error('Failed to update quantity:', error);
+      console.error('Failed to update quantity:', error);
+      if (error.message.includes('404') || error.message.includes('not found')) {
+        // Product was deleted, remove from cart
+        setCart(prevCart => prevCart.filter(item => {
+          const itemId = item.product?._id || item.product?.id || item._id || item.id;
+          return itemId !== productId;
+        }));
+        throw new Error('Product no longer available and removed from cart');
+      }
+      if (error.message.includes('available')) {
+        throw new Error(error.message);
+      }
     }
   };
 
@@ -116,8 +150,9 @@ export function CartProvider({ children }) {
 
   const getTotalPrice = () => {
     return cart.reduce((total, item) => {
-      const price = item.product?.price || item.price;
-      return total + price * item.quantity;
+      const price = item.product?.price || item.price || 0;
+      const quantity = item.quantity || 0;
+      return total + (price * quantity);
     }, 0);
   };
 
@@ -138,6 +173,7 @@ export function CartProvider({ children }) {
         clearCart,
         getTotalPrice,
         getTotalItems,
+        loadCart, // Expose loadCart for manual refresh
       }}
     >
       {children}
