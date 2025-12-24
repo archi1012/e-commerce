@@ -44,7 +44,7 @@ export default function CheckoutPage() {
       const order = await paymentAPI.createPaymentOrder(totalAmount);
       
       const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_9WaeLLJnOFJCBz',
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_9WaeLLJnOFJCBz',
         amount: order.amount,
         currency: order.currency,
         name: 'WINGER Store',

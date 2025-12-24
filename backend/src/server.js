@@ -4,6 +4,7 @@ const session = require('express-session');
 const dotenv = require('dotenv');
 const passport = require('passport');
 const connectDB = require('./config/db');
+const { helmet, limiter, mongoSanitize } = require('./middleware/security.middleware');
 
 // Load environment variables
 dotenv.config();
@@ -16,9 +17,24 @@ require('./config/passport');
 
 const app = express();
 
-// Middleware
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
-app.use(express.json());
+// Security middleware
+app.use(helmet);
+app.use(limiter);
+app.use(mongoSanitize);
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL 
+    : ['http://localhost:3000', 'http://localhost:5173'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// Body parsing with limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -37,12 +53,15 @@ const productRoutes = require('./routes/product.routes');
 const cartRoutes = require('./routes/cart.routes');
 const orderRoutes = require('./routes/order.routes');
 const reviewRoutes = require('./routes/review.routes');
+const paymentRoutes = require('./routes/payment.routes');
+const { authLimiter, paymentLimiter } = require('./middleware/security.middleware');
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/payment', paymentLimiter, paymentRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
