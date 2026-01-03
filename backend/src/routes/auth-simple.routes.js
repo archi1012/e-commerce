@@ -6,6 +6,11 @@ const passport = require('passport');
 
 const router = express.Router();
 
+// Test route
+router.get('/test', (req, res) => {
+  res.json({ message: 'Auth routes working!', timestamp: new Date().toISOString() });
+});
+
 router.post('/register', [
   body('name').notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Valid email is required'),

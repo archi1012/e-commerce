@@ -6,6 +6,8 @@ const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = getAuthToken();
   
+  console.log('API Request:', url); // Debug log
+  
   const config = {
     headers: {
       'Content-Type': 'application/json',
@@ -22,18 +24,24 @@ const apiRequest = async (endpoint, options = {}) => {
     const response = await fetch(url, config);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
     
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Response is not JSON');
+      const text = await response.text();
+      throw new Error(`Expected JSON, got: ${text}`);
     }
     
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('API Request Error:', error);
+    console.error('API Request Error:', {
+      url,
+      error: error.message,
+      stack: error.stack
+    });
     throw error;
   }
 };

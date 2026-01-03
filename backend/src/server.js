@@ -34,8 +34,11 @@ const limiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: 'Too many auth attempts'
+  max: 20, // Increased from 5 to 20
+  message: 'Too many auth attempts, please try again in 15 minutes',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true // Don't count successful requests
 });
 
 const paymentLimiter = rateLimit({
@@ -46,7 +49,7 @@ const paymentLimiter = rateLimit({
 
 // Apply security middleware
 app.use(helmet());
-app.use(limiter);
+// app.use(limiter); // Disabled for development
 app.use(mongoSanitize());
 
 // CORS configuration
@@ -90,7 +93,7 @@ try {
 }
 
 // Apply routes with error handling
-if (authRoutes) app.use('/api/auth', authLimiter, authRoutes);
+if (authRoutes) app.use('/api/auth', authRoutes); // Removed authLimiter temporarily
 if (productRoutes) app.use('/api/products', productRoutes);
 if (cartRoutes) app.use('/api/cart', cartRoutes);
 if (orderRoutes) app.use('/api/orders', orderRoutes);
